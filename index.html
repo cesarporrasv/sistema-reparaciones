@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Reparaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-6">
+
+    <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow">
+
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">
+            Sistema de Reparaciones Empresa
+        </h1>
+
+        <!-- RESUMEN -->
+        <div id="resumenContainer" class="hidden mb-6">
+
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">
+                Resumen
+            </h2>
+
+            <div class="grid grid-cols-2 gap-4">
+
+                <div class="bg-red-100 text-red-700 p-4 rounded-lg text-center">
+                    <p class="text-sm">Pendientes</p>
+                    <p id="pendientes" class="text-2xl font-bold">0</p>
+                </div>
+
+                <div class="bg-green-100 text-green-700 p-4 rounded-lg text-center">
+                    <p class="text-sm">Entregados</p>
+                    <p id="entregados" class="text-2xl font-bold">0</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- BUSCAR -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2 mt-4">Buscar por IMEI</h2>
+
+            <div class="flex gap-2">
+                <input id="buscarImei" class="border p-2 rounded w-full" placeholder="Ingrese IMEI">
+                <button onclick="buscar()" class="bg-blue-500 text-white px-4 py-2 rounded">
+                    Buscar
+                </button>
+                <button onclick="verPendientes()" class="bg-gray-700 text-white px-4 py-2 rounded">
+                    Pendientes
+                </button>
+            </div>
+        </div>
+
+        <!-- FILTRO COMBINADO -->
+        <div>
+            <h2 class="text-lg font-semibold mb-2 mt-6">Búsqueda Avanzada</h2>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+
+                <select id="filtroTecnicoAvanzado" class="border p-2 rounded">
+
+                    <option value="">Todos los técnicos</option>
+                    <option value="Albeiro">Albeiro</option>
+                    <option value="Cesar">Cesar</option>
+                    <option value="Danilo">Danilo</option>
+                    <option value="Danny">Danny</option>
+                    <option value="Diego">Diego</option>
+                    <option value="Jonathan">Jonathan</option>
+                    <option value="Michael">Michael</option>
+
+                </select>
+
+                <select id="filtroEstado" class="border p-2 rounded">
+
+                    <option value="">Todos los estados</option>
+                    <option value="DEBE">DEBE</option>
+                    <option value="OK">OK</option>
+
+                </select>
+
+                <input id="filtroReparacion" class="border p-2 rounded" placeholder="Reparación" />
+
+            </div>
+
+            <button onclick="aplicarFiltros()" class="bg-indigo-500 text-white px-4 py-2 rounded mb-4">
+                Aplicar filtros
+            </button>
+        </div>
+
+        <!-- ESTADISTICAS -->
+        <div>
+            <h2 class="text-lg font-semibold mb-2 mt-4">Estadísticas</h2>
+
+            <select id="estadisticaTecnico" class="border p-2 rounded">
+                <option value="">Todos los técnicos</option>
+                <option value="Albeiro">Albeiro</option>
+                <option value="Cesar">Cesar</option>
+                <option value="Danilo">Danilo</option>
+                <option value="Danny">Danny</option>
+                <option value="Diego">Diego</option>
+                <option value="Jonathan">Jonathan</option>
+                <option value="Michael">Michael</option>
+            </select>
+
+            <button onclick="cargarEstadisticas()" class="bg-purple-600 text-white px-4 py-2 rounded">
+                Estadísticas
+            </button>
+
+            <div id="estadisticasContainer" class="hidden mt-6">
+
+                <h2 class="text-lg font-semibold mb-4 text-gray-700">
+                    Estadísticas del último mes
+                </h2>
+
+                <div id="estadisticasGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- REGISTRO -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-2 mt-6">Registrar Reparación</h2>
+
+            <div class="grid grid-cols-2 gap-2">
+                <input id="imei" class="border p-2 rounded" placeholder="IMEI">
+                <input id="equipo" class="border p-2 rounded" placeholder="Equipo">
+                <input id="reparacionInput" class="border p-2 rounded w-full mb-2" placeholder="Agregar reparación">
+
+                <button onclick="agregarReparacion()" class="bg-blue-500 text-white px-2 py-1 rounded">
+                    Agregar
+                </button>
+
+                <ul id="listaReparaciones" class="mt-2"></ul>
+                <input id="fecha" type="date" class="border p-2 rounded">
+                <select id="tecnico" class="border p-2 rounded">
+                    <option value="">Seleccione técnico</option>
+                    <option value="Albeiro">Albeiro</option>
+                    <option value="Cesar">Cesar</option>
+                    <option value="Danilo">Danilo</option>
+                    <option value="Danny">Danny</option>
+                    <option value="Diego">Diego</option>
+                    <option value="Jonathan">Jonathan</option>
+                    <option value="Michael">Michael</option>
+                </select>
+
+                <select id="estado" class="border p-2 rounded">
+                    <option value="DEBE">DEBE</option>
+                    <option value="OK">OK</option>
+                </select>
+            </div>
+
+            <button onclick="guardar()" class="mt-3 bg-green-500 text-white px-4 py-2 rounded">
+                Guardar
+            </button>
+        </div>
+
+        <!-- TABLA -->
+        <table class="w-full border text-sm">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="p-2 border">IMEI</th>
+                    <th class="p-2 border">Equipo</th>
+                    <th class="p-2 border">Reparación</th>
+                    <th class="p-2 border">Fecha</th>
+                    <th class="p-2 border">Técnico</th>
+                    <th class="p-2 border">Estado</th>
+                    <th class="p-2 border">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="resultado"></tbody>
+        </table>
+
+        <!-- PAGINACIÓN -->
+        <div class="flex justify-between items-center mt-4">
+
+            <button id="btnAnterior" onclick="anterior()"
+                class="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50">
+                Anterior
+            </button>
+
+            <span id="infoPagina" class="font-semibold"></span>
+
+            <button id="btnSiguiente" onclick="siguiente()"
+                class="bg-gray-500 text-white px-4 py-2 rounded disabled:opacity-50">
+                Siguiente
+            </button>
+
+        </div>
+
+        <!-- MODAL -->
+        <div id="modalEditar" onclick="cerrarModal()"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+
+            <div onclick="event.stopPropagation()" class="bg-white p-6 rounded-lg w-full max-w-md">
+
+                <h2 class="text-lg font-bold mb-4">Editar Orden</h2>
+
+                <input id="editImei" class="border p-2 rounded w-full mb-2" placeholder="IMEI">
+                <input id="editEquipo" class="border p-2 rounded w-full mb-2" placeholder="Equipo">
+                <input id="editTipo" class="border p-2 rounded w-full mb-2" placeholder="Reparación">
+                <input id="editFecha" type="date" class="border p-2 rounded w-full mb-2">
+
+                <select id="editTecnico" class="border p-2 rounded w-full mb-2">
+                    <option value="Albeiro">Albeiro</option>
+                    <option value="Cesar">Cesar</option>
+                    <option value="Danilo">Danilo</option>
+                    <option value="Danny">Danny</option>
+                    <option value="Diego">Diego</option>
+                    <option value="Jonathan">Jonathan</option>
+                    <option value="Michael">Michael</option>
+                </select>
+
+                <select id="editEstado" class="border p-2 rounded w-full mb-4">
+                    <option value="DEBE">DEBE</option>
+                    <option value="OK">OK</option>
+                </select>
+
+                <input id="editReparacionInput" class="border p-2 rounded w-full mb-2"
+                    placeholder="Agregar reparación" />
+
+                <button type="button" onclick="agregarReparacionEditar()"
+                    class="bg-blue-500 text-white px-3 py-1 rounded mb-2">
+                    Agregar reparación
+                </button>
+
+                <ul id="editListaReparaciones" class="mb-4"></ul>
+
+                <div class="flex justify-end gap-2">
+                    <button onclick="cerrarModal()" class="bg-gray-400 text-white px-4 py-2 rounded">
+                        Cancelar
+                    </button>
+
+                    <button onclick="guardarEdicion()" class="bg-blue-500 text-white px-4 py-2 rounded">
+                        Guardar
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const API = 'http://localhost:3000';
+
+        let paginaActual = 1;
+        let totalPaginas = 1;
+        let datosActuales = [];
+        let itemEditando = null;
+        let reparaciones = [];
+        let reparacionesEditando = [];
+
+        async function buscar() {
+            ocultarResumen();
+
+            const imei = document.getElementById('buscarImei').value;
+
+            if (!imei) {
+                alert('Ingresa un IMEI');
+                return;
+            }
+
+            try {
+
+                const res = await fetch(`${API}/buscar?imei=${imei}`);
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                const data = await res.json();
+
+                renderTabla(data);
+
+            } catch (error) {
+
+                console.error(error);
+                alert('Error al buscar');
+
+            }
+
+
+        }
+
+        /*
+        async function filtrarTecnico() {
+
+            const nombre = document.getElementById('filtroTecnico').value;
+
+            if (!nombre) return;
+
+            try {
+
+                const res = await fetch(`${API}/tecnico/${nombre}`);
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                const data = await res.json();
+
+                renderTabla(data);
+
+                cargarResumen();
+
+            } catch (error) {
+
+                console.error(error);
+                alert('Error al filtrar');
+
+            }
+
+        }
+        */
+
+        async function cargarResumen() {
+
+            try {
+
+                const res = await fetch(`${API}/resumen`);
+
+                if (!res.ok) {
+                    throw new Error('Error en resumen');
+                }
+
+                const data = await res.json();
+
+                const container = document.getElementById('resumenContainer');
+
+                container.classList.remove('hidden');
+
+                document.getElementById('pendientes').textContent =
+                    data.pendientes || 0;
+
+                document.getElementById('entregados').textContent =
+                    data.entregados || 0;
+
+            } catch (error) {
+
+                console.error(error);
+
+            }
+
+        }
+
+        async function verPendientes() {
+            const res = await fetch(`${API}/pendientes?page=${paginaActual}`);
+            const result = await res.json();
+
+            renderTabla(result.data);
+
+            totalPaginas = result.totalPages;
+
+            actualizarPaginacion();
+
+            cargarResumen();
+        }
+
+        async function guardar() {
+
+            const body = {
+                imei: document.getElementById('imei').value,
+                equipo: document.getElementById('equipo').value,
+                fecha_ingreso: document.getElementById('fecha').value,
+                tecnico: document.getElementById('tecnico').value,
+                estado: document.getElementById('estado').value,
+
+                // array de reparaciones
+                reparaciones: reparaciones
+            };
+
+            // ✅ Validaciones frontend
+            if (!body.imei || !body.equipo || !body.tecnico || !body.fecha_ingreso) {
+                alert('Completa los campos obligatorios');
+                return;
+            }
+
+            if (reparaciones.length === 0) {
+                alert('Agrega al menos una reparación');
+                return;
+            }
+
+            try {
+
+                const res = await fetch(`${API}/equipos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                // verificar respuesta backend
+                if (!res.ok) {
+                    throw new Error('Error al guardar');
+                }
+
+                alert('Guardado correctamente');
+
+                // ✅ limpiar inputs
+                document.getElementById('imei').value = '';
+                document.getElementById('equipo').value = '';
+                document.getElementById('fecha').value = '';
+                document.getElementById('estado').value = 'DEBE';
+
+                // limpiar reparaciones
+                reparaciones = [];
+                document.getElementById('listaReparaciones').innerHTML = '';
+
+                // ⚠️ TEMPORALMENTE comentar esto
+                // verPendientes();
+
+            } catch (error) {
+
+                console.error(error);
+                alert('Error al guardar');
+
+            }
+        }
+
+        function editar(id) {
+
+            const item = datosActuales.find(d => d.id === id);
+
+            if (!item) return;
+
+            itemEditando = item;
+
+            document.getElementById('editImei').value = item.imei;
+            document.getElementById('editEquipo').value = item.equipo;
+            document.getElementById('editFecha').value =
+                item.fecha_ingreso.split('T')[0];
+
+            document.getElementById('editTecnico').value = item.tecnico;
+            document.getElementById('editEstado').value = item.estado;
+
+            // cargar reparaciones
+            reparacionesEditando =
+                item.reparaciones
+                    ? item.reparaciones.split(', ').map(r => r.trim())
+                    : [];
+
+            renderListaEdicion();
+
+            document.getElementById('modalEditar')
+                .classList.remove('hidden');
+
+            document.getElementById('modalEditar')
+                .classList.add('flex');
+        }
+
+        async function toggleEstado(id) {
+
+            try {
+
+                const res = await fetch(`${API}/equipos/${id}/toggle`, {
+                    method: 'PUT'
+                });
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                verPendientes();
+
+            } catch (error) {
+
+                console.error(error);
+                alert('Error al actualizar estado');
+
+            }
+
+        }
+
+        async function guardarEdicion() {
+
+            if (!itemEditando) return;
+
+            const body = {
+                imei: document.getElementById('editImei').value,
+                equipo: document.getElementById('editEquipo').value,
+                fecha_ingreso: document.getElementById('editFecha').value,
+                tecnico: document.getElementById('editTecnico').value,
+                estado: document.getElementById('editEstado').value,
+
+                reparaciones: reparacionesEditando
+            };
+
+            try {
+
+                const res = await fetch(`${API}/equipos/${itemEditando.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                cerrarModal();
+
+                verPendientes();
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert('Error al guardar edición');
+
+            }
+
+        }
+
+        function renderTabla(data) {
+            datosActuales = data;
+
+            const tabla = document.getElementById('resultado');
+            tabla.innerHTML = '';
+
+            data.forEach(item => {
+                const fecha = new Date(item.fecha_ingreso).toLocaleDateString();
+                const fila = `
+        <tr class="text-center odd:bg-white even:bg-gray-100">
+          <td class="border p-1">${item.imei}</td>
+          <td class="border p-1">${item.equipo}</td>
+          <td class="border p-1">${item.reparaciones}</td>
+          <td class="border p-1">${fecha}</td>
+          <td class="border p-1">${item.tecnico}</td>
+          <td class="border p-1 font-bold ${item.estado === 'DEBE' ? 'text-red-500' : 'text-green-600'
+                    }">
+            ${item.estado}
+          </td>
+          <td class="border p-1">
+            <button 
+              class="${item.estado === 'DEBE'
+                        ? 'bg-green-500'
+                        : 'bg-red-500'
+                    } text-white px-2 py-1 rounded"
+              onclick="toggleEstado(${item.id})"
+            >
+              ${item.estado === 'DEBE' ? 'Marcar OK' : 'Marcar DEBE'}
+            </button>
+
+            <button 
+                class="bg-yellow-500 text-white px-2 py-1 rounded"
+                 onclick="editar(${item.id})"
+            >                          
+                Editar
+            </button>
+          </td>
+        </tr>
+      `;
+                tabla.innerHTML += fila;
+            });
+        }
+
+        function ocultarResumen() {
+            document.getElementById('resumenContainer').classList.add('hidden');
+        }
+
+        function actualizarPaginacion() {
+            document.getElementById('infoPagina').textContent =
+                `Página ${paginaActual} de ${totalPaginas}`;
+
+            // Desactivar botones
+            document.getElementById('btnAnterior').disabled = paginaActual === 1;
+            document.getElementById('btnSiguiente').disabled = paginaActual === totalPaginas;
+        }
+
+        function siguiente() {
+            if (paginaActual < totalPaginas) {
+                paginaActual++;
+                verPendientes();
+            }
+        }
+
+        function anterior() {
+            if (paginaActual > 1) {
+                paginaActual--;
+                verPendientes();
+            }
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalEditar');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function agregarReparacion() {
+            const input = document.getElementById('reparacionInput');
+            const valor = input.value;
+
+            if (!valor) return;
+
+            reparaciones.push(valor);
+
+            const lista = document.getElementById('listaReparaciones');
+            lista.innerHTML += `<li>${valor}</li>`;
+
+            input.value = '';
+        }
+
+        function agregarReparacionEditar() {
+
+            const input = document.getElementById('editReparacionInput');
+
+            const valor = input.value.trim();
+
+            if (!valor) return;
+
+            reparacionesEditando.push(valor);
+
+            renderListaEdicion();
+
+            input.value = '';
+        }
+
+        function renderListaEdicion() {
+
+            const lista = document.getElementById('editListaReparaciones');
+
+            lista.innerHTML = '';
+
+            reparacionesEditando.forEach((rep, index) => {
+
+                lista.innerHTML += `
+                <li class="flex justify-between items-center border p-2 mb-1 rounded">
+
+                    <span>${rep}</span>
+
+                    <button
+                    onclick="eliminarReparacionEditar(${index})"
+                    class="bg-red-500 text-white px-2 rounded"
+                    >
+                    X
+                    </button>
+
+                </li>
+                `;
+            });
+
+        }
+
+        function eliminarReparacionEditar(index) {
+
+            reparacionesEditando.splice(index, 1);
+
+            renderListaEdicion();
+        }
+
+        async function aplicarFiltros() {
+
+            const tecnico =
+                document.getElementById('filtroTecnicoAvanzado').value;
+
+            const estado =
+                document.getElementById('filtroEstado').value;
+
+            const reparacion =
+                document.getElementById('filtroReparacion').value;
+
+            const query = new URLSearchParams({
+                tecnico,
+                estado,
+                reparacion
+            });
+
+            try {
+
+                const res = await fetch(
+                    `${API}/filtros?${query}`
+                );
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                const data = await res.json();
+
+                renderTabla(data);
+
+                ocultarResumen();
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert('Error aplicando filtros');
+
+            }
+
+        }
+
+        async function cargarEstadisticas() {
+
+            const tecnico =
+                document.getElementById('estadisticaTecnico').value;
+
+            const query = new URLSearchParams({
+                tecnico
+            });
+
+            try {
+
+                const res = await fetch(
+                    `${API}/estadisticas/reparaciones?${query}`
+                );
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                const data = await res.json();
+
+                renderEstadisticas(data);
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert('Error cargando estadísticas');
+
+            }
+
+        }
+
+        function renderEstadisticas(data) {
+
+            const container =
+                document.getElementById('estadisticasContainer');
+
+            const grid =
+                document.getElementById('estadisticasGrid');
+
+            container.classList.remove('hidden');
+
+            grid.innerHTML = '';
+
+            data.forEach(item => {
+
+                grid.innerHTML += `
+      <div class="bg-white shadow rounded-lg p-4 border">
+
+        <h3 class="text-lg font-bold text-gray-800">
+          ${item.tecnico}
+        </h3>
+
+        <p class="text-gray-600 mt-2">
+          Reparación:
+          <span class="font-semibold">
+            ${item.tipo_reparacion}
+          </span>
+        </p>
+
+        <p class="mt-3 text-3xl font-bold text-indigo-600">
+          ${item.total}
+        </p>
+
+      </div>
+    `;
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>
