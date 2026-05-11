@@ -133,7 +133,7 @@
                 </button>
 
                 <ul id="listaReparaciones" class="mt-2"></ul>
-                <input id="fecha" type="date" class="border p-2 rounded">
+                <input type="date" id="fecha" onclick="this.showPicker()" class="border p-2 rounded" />
                 <select id="tecnico" class="border p-2 rounded">
                     <option value="">Seleccione técnico</option>
                     <option value="Albeiro">Albeiro</option>
@@ -200,7 +200,7 @@
                 <input id="editImei" class="border p-2 rounded w-full mb-2" placeholder="IMEI">
                 <input id="editEquipo" class="border p-2 rounded w-full mb-2" placeholder="Equipo">
                 <input id="editTipo" class="border p-2 rounded w-full mb-2" placeholder="Reparación">
-                <input id="editFecha" type="date" class="border p-2 rounded w-full mb-2">
+                <input id="editFecha" type="date" onclick="this.showPicker()" class="border p-2 rounded w-full mb-2">
 
                 <select id="editTecnico" class="border p-2 rounded w-full mb-2">
                     <option value="Albeiro">Albeiro</option>
@@ -241,11 +241,22 @@
 
         </div>
 
+        <!-- TOAST -->
+        <div id="toast" class="fixed top-5 right-5 hidden px-4 py-3 rounded shadow-lg text-white font-semibold z-50">
+        </div>
     </div>
 
     <script>
 
         const API = 'http://localhost:3000';
+
+        window.onload = () => {
+
+            const hoy = new Date().toISOString().split('T')[0];
+
+            document.getElementById('fecha').value = hoy;
+
+        };
 
         let paginaActual = 1;
         let totalPaginas = 1;
@@ -399,25 +410,26 @@
                     throw new Error('Error al guardar');
                 }
 
-                alert('Guardado correctamente');
+                mostrarToast('Reparación guardada correctamente');
 
                 // ✅ limpiar inputs
+                document.getElementById('imei').focus();
                 document.getElementById('imei').value = '';
                 document.getElementById('equipo').value = '';
-                document.getElementById('fecha').value = '';
+                document.getElementById('fecha').value =
+                    new Date().toISOString().split('T')[0];
                 document.getElementById('estado').value = 'DEBE';
 
                 // limpiar reparaciones
                 reparaciones = [];
                 document.getElementById('listaReparaciones').innerHTML = '';
 
-                // ⚠️ TEMPORALMENTE comentar esto
-                // verPendientes();
+                verPendientes();
 
             } catch (error) {
 
                 console.error(error);
-                alert('Error al guardar');
+                mostrarToast('Error al guardar', 'error');
 
             }
         }
@@ -770,6 +782,34 @@
 
         }
 
+        function mostrarToast(mensaje, tipo = 'success') {
+
+            const toast = document.getElementById('toast');
+
+            toast.textContent = mensaje;
+
+            // limpiar clases anteriores
+            toast.className =
+                'fixed top-5 right-5 px-4 py-3 rounded shadow-lg text-white font-semibold z-50';
+
+            // color según tipo
+            if (tipo === 'success') {
+                toast.classList.add('bg-green-500');
+            }
+
+            if (tipo === 'error') {
+                toast.classList.add('bg-red-500');
+            }
+
+            // mostrar
+            toast.classList.remove('hidden');
+
+            // ocultar después
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+
+        }
     </script>
 
 </body>
