@@ -483,20 +483,40 @@
 
             try {
 
-                const res = await fetch(`${API}/equipos/${id}/toggle`, {
-                    method: 'PUT'
-                });
+                const res = await fetch(
+                    `${API}/equipos/${id}/toggle`,
+                    {
+                        method: 'PUT'
+                    }
+                );
 
                 if (!res.ok) {
                     throw new Error();
                 }
 
-                verPendientes();
+                mostrarToast('Estado actualizado');
+
+                // 🔥 recargar vista actual
+                if (modoActual === 'pendientes') {
+
+                    verPendientes();
+
+                }
+
+                if (modoActual === 'filtros') {
+
+                    aplicarFiltros();
+
+                }
 
             } catch (error) {
 
                 console.error(error);
-                alert('Error al actualizar estado');
+
+                mostrarToast(
+                    'Error al actualizar estado',
+                    'error'
+                );
 
             }
 
