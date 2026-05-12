@@ -373,9 +373,35 @@ app.put('/equipos/:id', (req, res) => {
 // enpoint para filtros combinados
 app.get('/filtros', (req, res) => {
 
-  const { tecnico, estado, reparacion } = req.query;
+  const {
+    tecnico,
+    estado,
+    reparacion,
+    page = 1
+  } = req.query;
 
-  let sql = `
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  let whereSql = ` WHERE 1 = 1 `;
+  const params = [];
+
+  if (tecnico) {
+    whereSql += ` AND e.tecnico = ?`;
+    params.push(tecnico);
+  }
+
+  if (estado) {
+    whereSql += ` AND e.estado = ?`;
+    params.push(estado);
+  }
+
+  if (reparacion) {
+    whereSql += ` AND r.tipo_reparacion = ?`;
+    params.push(reparacion);
+  }
+
+  const sql = `
     SELECT
       e.id,
       e.imei,
@@ -391,43 +417,53 @@ app.get('/filtros', (req, res) => {
     LEFT JOIN reparaciones r
       ON e.id = r.equipo_id
 
-    WHERE 1 = 1
-  `;
+    ${whereSql}
 
-  const params = [];
-
-  // filtro técnico
-  if (tecnico) {
-    sql += ` AND e.tecnico = ?`;
-    params.push(tecnico);
-  }
-
-  // filtro estado
-  if (estado) {
-    sql += ` AND e.estado = ?`;
-    params.push(estado);
-  }
-
-  // filtro reparación
-  if (reparacion) {
-    sql += ` AND r.tipo_reparacion = ?`;
-    params.push(reparacion);
-  }
-
-  sql += `
     GROUP BY e.id
+
     ORDER BY e.fecha_ingreso DESC
+
+    LIMIT ? OFFSET ?
   `;
 
-  db.query(sql, params, (err, results) => {
+  const totalSql = `
+    SELECT COUNT(DISTINCT e.id) AS total
+
+    FROM equipos e
+
+    LEFT JOIN reparaciones r
+      ON e.id = r.equipo_id
+
+    ${whereSql}
+  `;
+
+  db.query(totalSql, params, (err, totalResult) => {
 
     if (err) {
       console.error(err);
       return res.status(500).send('Error');
-
     }
 
-    res.json(results);
+    const total = totalResult[0].total;
+
+    db.query(
+      sql,
+      [...params, limit, offset],
+      (err, results) => {
+
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Error');
+        }
+
+        res.json({
+          data: results,
+          totalPages: Math.ceil(total / limit),
+          total
+        });
+
+      }
+    );
 
   });
 

@@ -83,7 +83,7 @@
 
             </div>
 
-            <button onclick="aplicarFiltros()" class="bg-indigo-500 text-white px-4 py-2 rounded mb-4">
+            <button onclick="buscarConFiltros()" class="bg-indigo-500 text-white px-4 py-2 rounded mb-4">
                 Aplicar filtros
             </button>
         </div>
@@ -260,6 +260,8 @@
 
         let paginaActual = 1;
         let totalPaginas = 1;
+        let modoActual = 'pendientes';
+        let filtrosActuales = {};
         let datosActuales = [];
         let itemEditando = null;
         let reparaciones = [];
@@ -271,7 +273,10 @@
             const imei = document.getElementById('buscarImei').value;
 
             if (!imei) {
-                alert('Ingresa un IMEI');
+                mostrarToast('Ingresa un IMEI', 'error');
+
+                document.getElementById('resultado').innerHTML = '';
+
                 return;
             }
 
@@ -284,6 +289,15 @@
                 }
 
                 const data = await res.json();
+
+                if (data.length === 0) {
+
+                    mostrarToast('Equipo no encontrado', 'error');
+
+                    document.getElementById('resultado').innerHTML = '';
+
+                    return;
+                }
 
                 renderTabla(data);
 
@@ -587,17 +601,39 @@
         }
 
         function siguiente() {
+
             if (paginaActual < totalPaginas) {
+
                 paginaActual++;
-                verPendientes();
+
+                if (modoActual === 'pendientes') {
+                    verPendientes();
+                }
+
+                if (modoActual === 'filtros') {
+                    aplicarFiltros();
+                }
+
             }
+
         }
 
         function anterior() {
+
             if (paginaActual > 1) {
+
                 paginaActual--;
-                verPendientes();
+
+                if (modoActual === 'pendientes') {
+                    verPendientes();
+                }
+
+                if (modoActual === 'filtros') {
+                    aplicarFiltros();
+                }
+
             }
+
         }
 
         function cerrarModal() {
@@ -670,6 +706,8 @@
 
         async function aplicarFiltros() {
 
+            modoActual = 'filtros';
+
             const tecnico =
                 document.getElementById('filtroTecnicoAvanzado').value;
 
@@ -679,10 +717,15 @@
             const reparacion =
                 document.getElementById('filtroReparacion').value;
 
-            const query = new URLSearchParams({
+            filtrosActuales = {
                 tecnico,
                 estado,
                 reparacion
+            };
+
+            const query = new URLSearchParams({
+                ...filtrosActuales,
+                page: paginaActual
             });
 
             try {
@@ -695,9 +738,13 @@
                     throw new Error();
                 }
 
-                const data = await res.json();
+                const result = await res.json();
 
-                renderTabla(data);
+                renderTabla(result.data);
+
+                totalPaginas = result.totalPages;
+
+                actualizarPaginacion();
 
                 ocultarResumen();
 
@@ -705,9 +752,17 @@
 
                 console.error(error);
 
-                alert('Error aplicando filtros');
+                mostrarToast('Error aplicando filtros', 'error');
 
             }
+
+        }
+
+        function buscarConFiltros() {
+
+            paginaActual = 1;
+
+            aplicarFiltros();
 
         }
 
