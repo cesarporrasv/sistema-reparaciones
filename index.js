@@ -45,14 +45,14 @@ app.get('/buscar', (req, res) => {
     LEFT JOIN reparaciones r
       ON e.id = r.equipo_id
 
-    WHERE e.imei = ?
+    WHERE e.imei LIKE ?
 
     GROUP BY e.id
 
     ORDER BY e.fecha_ingreso DESC
   `;
 
-  db.query(sql, [imei], (err, results) => {
+  db.query(sql, [`%${imei}%`], (err, results) => {
 
     if (err) {
       console.error(err);
