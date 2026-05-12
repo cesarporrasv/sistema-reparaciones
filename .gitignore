@@ -1,5 +1,5 @@
 node_modules
 .env
-backups
+DB_backups
 import
 .DS_Store
