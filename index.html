@@ -268,6 +268,9 @@
         let reparacionesEditando = [];
 
         async function buscar() {
+            paginaActual = 1;
+            totalPaginas = 1;
+            actualizarPaginacion();
             ocultarResumen();
 
             const imei = document.getElementById('buscarImei').value;
@@ -301,6 +304,9 @@
 
                 renderTabla(data);
 
+                document.getElementById('infoPagina')
+                    .textContent = '';
+
             } catch (error) {
 
                 console.error(error);
@@ -310,37 +316,6 @@
 
 
         }
-
-        /*
-        async function filtrarTecnico() {
-
-            const nombre = document.getElementById('filtroTecnico').value;
-
-            if (!nombre) return;
-
-            try {
-
-                const res = await fetch(`${API}/tecnico/${nombre}`);
-
-                if (!res.ok) {
-                    throw new Error();
-                }
-
-                const data = await res.json();
-
-                renderTabla(data);
-
-                cargarResumen();
-
-            } catch (error) {
-
-                console.error(error);
-                alert('Error al filtrar');
-
-            }
-
-        }
-        */
 
         async function cargarResumen() {
 
