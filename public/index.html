@@ -348,7 +348,8 @@
         }
 
         async function verPendientes() {
-            const res = await fetch(`${API}/pendientes?page=${paginaActual}`);
+            const res = await fetch(
+                `${API}/pendientes?page=${paginaActual}`);
             const result = await res.json();
 
             renderTabla(result.data);
@@ -726,8 +727,7 @@
             try {
 
                 const res = await fetch(
-                    `${API}/filtros?${query}`
-                );
+                    `${API}/filtros?${query}`);
 
                 if (!res.ok) {
                     throw new Error();
@@ -773,8 +773,7 @@
             try {
 
                 const res = await fetch(
-                    `${API}/estadisticas/reparaciones?${query}`
-                );
+                    `${API}/estadisticas/reparaciones?${query}`);
 
                 if (!res.ok) {
                     throw new Error();

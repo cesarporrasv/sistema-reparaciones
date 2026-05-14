@@ -1,12 +1,25 @@
 require('dotenv').config();
 
+const session = require('express-session');
 const express = require('express');
 const mysql = require('mysql2');
-const cors = require('cors');
-
+const bcrypt = require('bcrypt');
 const app = express();
-app.use(cors());
+
 app.use(express.json());
+app.use(express.static('public'));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+
+  resave: false,
+
+  saveUninitialized: false,
+
+  cookie: {
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 8
+  }
+}));
 
 // conexión a MySQL
 const db = mysql.createConnection({
@@ -25,7 +38,7 @@ db.connect(err => {
 });
 
 // endpoint para buscar por IMEI
-app.get('/buscar', (req, res) => {
+app.get('/buscar', verificarLogin, (req, res) => {
 
   const { imei } = req.query;
 
@@ -70,7 +83,7 @@ app.listen(process.env.PORT, () => {
 });
 
 // endpoint para guardar reparación
-app.post('/equipos', (req, res) => {
+app.post('/equipos', verificarRol('admin', 'editor'), (req, res) => {
   const {
     imei,
     equipo,
@@ -143,7 +156,7 @@ app.post('/equipos', (req, res) => {
 });
 
 // endpoint toogle estado
-app.put('/equipos/:id/toggle', (req, res) => {
+app.put('/equipos/:id/toggle', verificarRol('admin', 'editor'), (req, res) => {
 
   const { id } = req.params;
 
@@ -170,7 +183,7 @@ app.put('/equipos/:id/toggle', (req, res) => {
 });
 
 // endpoint para listar pendientes
-app.get('/pendientes', (req, res) => {
+app.get('/pendientes', verificarLogin, (req, res) => {
 
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
@@ -236,7 +249,7 @@ app.get('/pendientes', (req, res) => {
 });
 
 // endpoint para filtrar por técnico
-app.get('/tecnico/:nombre', (req, res) => {
+app.get('/tecnico/:nombre', verificarLogin, (req, res) => {
 
   const { nombre } = req.params;
 
@@ -277,7 +290,7 @@ app.get('/tecnico/:nombre', (req, res) => {
 });
 
 // endpoint para resumen de pendientes y entregados
-app.get('/resumen', (req, res) => {
+app.get('/resumen', verificarLogin, (req, res) => {
   const sql = `
     SELECT 
       SUM(estado = 'DEBE') AS pendientes,
@@ -296,7 +309,7 @@ app.get('/resumen', (req, res) => {
 });
 
 // endpoint para editar orden de reparación
-app.put('/equipos/:id', (req, res) => {
+app.put('/equipos/:id', verificarRol('admin', 'editor'), (req, res) => {
 
   const { id } = req.params;
 
@@ -371,7 +384,7 @@ app.put('/equipos/:id', (req, res) => {
 });
 
 // enpoint para filtros combinados
-app.get('/filtros', (req, res) => {
+app.get('/filtros', verificarLogin, (req, res) => {
 
   const {
     tecnico,
@@ -470,7 +483,7 @@ app.get('/filtros', (req, res) => {
 });
 
 // endpoint para estadisticas por tecnico
-app.get('/estadisticas/reparaciones', (req, res) => {
+app.get('/estadisticas/reparaciones', verificarLogin, (req, res) => {
 
   const { tecnico } = req.query;
 
@@ -517,3 +530,97 @@ app.get('/estadisticas/reparaciones', (req, res) => {
   });
 
 });
+
+// endpoint login
+app.post('/login', (req, res) => {
+
+  const { username, password } = req.body;
+
+  const sql = `
+    SELECT *
+    FROM usuarios
+    WHERE username = ?
+  `;
+
+  db.query(sql, [username], async (err, results) => {
+
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Error');
+    }
+
+    if (results.length === 0) {
+      return res.status(401)
+        .json({ error: 'Usuario incorrecto' });
+    }
+
+    const usuario = results[0];
+
+    const valido = await bcrypt.compare(
+      password,
+      usuario.password
+    );
+
+    if (!valido) {
+      return res.status(401)
+        .json({ error: 'Contraseña incorrecta' });
+    }
+
+    req.session.usuario = {
+      id: usuario.id,
+      username: usuario.username,
+      rol: usuario.rol
+    };
+
+    res.json({
+      success: true,
+      usuario: {
+        username: usuario.username,
+        rol: usuario.rol
+      }
+    });
+
+  });
+
+});
+
+// endpoint logout
+app.post('/logout', (req, res) => {
+
+  req.session.destroy(() => {
+    res.send('Logout correcto');
+  });
+
+});
+
+function verificarLogin(req, res, next) {
+
+  if (!req.session.usuario) {
+    return res.status(401)
+      .json({ error: 'No autorizado' });
+  }
+
+  next();
+}
+
+function verificarRol(...rolesPermitidos) {
+
+  return (req, res, next) => {
+
+    if (!req.session.usuario) {
+      return res.status(401)
+        .json({ error: 'No autorizado' });
+    }
+
+    if (
+      !rolesPermitidos.includes(
+        req.session.usuario.rol
+      )
+    ) {
+      return res.status(403)
+        .json({ error: 'Sin permisos' });
+    }
+
+    next();
+  };
+}
