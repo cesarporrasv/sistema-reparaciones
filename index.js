@@ -7,7 +7,6 @@ const bcrypt = require('bcrypt');
 const app = express();
 
 app.use(express.json());
-app.use(express.static('public'));
 app.use(session({
   secret: process.env.SESSION_SECRET,
 
@@ -20,6 +19,20 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 8
   }
 }));
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+
+  if (!req.session.usuario) {
+
+    return res.redirect('/login.html');
+
+  }
+
+  res.sendFile(
+    __dirname + '/views/app.html'
+  );
+
+});
 
 // conexión a MySQL
 const db = mysql.createConnection({
