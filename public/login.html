@@ -16,21 +16,25 @@
             Sistema Reparaciones
         </h1>
 
-        <input id="username" class="border p-2 rounded w-full mb-4" placeholder="Usuario" />
+        <form onsubmit="login(event)">
+            <input id="username" class="border p-2 rounded w-full mb-4" placeholder="Usuario" />
 
-        <input id="password" type="password" class="border p-2 rounded w-full mb-4" placeholder="Contraseña" />
+            <input id="password" type="password" class="border p-2 rounded w-full mb-4" placeholder="Contraseña" />
 
-        <button onclick="login()" class="bg-indigo-600 text-white w-full py-2 rounded">
-            Ingresar
-        </button>
+            <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded">
+                Ingresar
+            </button>
+        </form>
 
     </div>
 
     <script>
 
-        async function login() {
+        async function login(event) {
+            event.preventDefault();
 
             const body = {
+
                 username:
                     document.getElementById('username').value,
 
