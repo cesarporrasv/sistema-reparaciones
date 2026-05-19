@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@layer base {
+  div,
+  input,
+  li,
+  select,
+  textarea {
+    border-color: rgb(209 213 219);
+  }
+
+  table,
+  th,
+  td {
+    border-color: rgb(229 231 235);
+  }
+}
