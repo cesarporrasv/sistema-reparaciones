@@ -42,10 +42,8 @@
                     document.getElementById('password').value
             };
 
-            const res = await fetch('http://localhost:3000/login', {
+            const res = await fetch('/login', {
                 method: 'POST',
-
-                credentials: 'include',
 
                 headers: {
                     'Content-Type': 'application/json'
