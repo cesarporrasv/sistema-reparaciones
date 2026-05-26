@@ -193,6 +193,13 @@
 
         </div>
 
+        <!-- BOTÓN LOGOUT -->
+        <div class="flex justify-center mt-6">
+            <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md">
+                Cerrar sesión
+            </button>
+        </div>
+
         <!-- MODAL -->
         <div id="modalEditar" onclick="cerrarModal()"
             class="fixed inset-0 bg-black/50 hidden items-center justify-center">
@@ -259,6 +266,8 @@
             const hoy = new Date().toISOString().split('T')[0];
 
             document.getElementById('fecha').value = hoy;
+
+            inicializarFechasEstadisticas();
 
         };
 
@@ -813,6 +822,23 @@
 
         }
 
+        function inicializarFechasEstadisticas() {
+
+            const hoy = new Date();
+
+            const primerDiaMes = new Date(
+                hoy.getFullYear(),
+                hoy.getMonth(),
+                1
+            );
+
+            document.getElementById('fechaInicioStats').value =
+                primerDiaMes.toISOString().split('T')[0];
+
+            document.getElementById('fechaFinStats').value =
+                hoy.toISOString().split('T')[0];
+        }
+
         function renderEstadisticas(data) {
 
             const container =
@@ -877,6 +903,46 @@
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 2500);
+
+        }
+
+        async function logout() {
+
+            const confirmar = confirm(
+                '¿Deseas cerrar sesión?'
+            );
+
+            if (!confirmar) return;
+
+            try {
+
+                const res = await fetch('/logout', {
+                    method: 'POST'
+                });
+
+                if (!res.ok) {
+                    throw new Error();
+                }
+
+                mostrarToast(
+                    'sesión cerrada correctamente'
+                );
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        '/login.html';
+
+                }, 1000);
+
+            } catch (error) {
+
+                mostrarToast(
+                    'Error al cerrar sesión',
+                    'error'
+                );
+
+            }
 
         }
     </script>

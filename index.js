@@ -619,8 +619,16 @@ app.post('/login', (req, res) => {
 // endpoint logout
 app.post('/logout', (req, res) => {
 
-  req.session.destroy(() => {
+  req.session.destroy((err) => {
+
+    if (err) {
+      return res.status(500).send('Error');
+    }
+
+    res.clearCookie('connect.sid');
+
     res.send('Logout correcto');
+
   });
 
 });
