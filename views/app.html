@@ -103,6 +103,10 @@
                 <option value="Michael">Michael</option>
             </select>
 
+            <input type="date" id="fechaInicioStats" class="border p-2 rounded" />
+
+            <input type="date" id="fechaFinStats" class="border p-2 rounded" />
+
             <button onclick="cargarEstadisticas()" class="bg-purple-600 text-white px-4 py-2 rounded">
                 Estadísticas
             </button>
@@ -766,14 +770,30 @@
             const tecnico =
                 document.getElementById('estadisticaTecnico').value;
 
-            const query = new URLSearchParams({
-                tecnico
-            });
+            const fechaInicio =
+                document.getElementById('fechaInicioStats').value;
+
+            const fechaFin =
+                document.getElementById('fechaFinStats').value;
+
+            const query = new URLSearchParams();
+
+            if (tecnico) {
+                query.append('tecnico', tecnico);
+            }
+
+            if (fechaInicio) {
+                query.append('fechaInicio', fechaInicio);
+            }
+
+            if (fechaFin) {
+                query.append('fechaFin', fechaFin);
+            }
 
             try {
 
                 const res = await fetch(
-                    `${API}/estadisticas/reparaciones?${query}`);
+                    `/estadisticas/reparaciones?${query}`);
 
                 if (!res.ok) {
                     throw new Error();

@@ -495,10 +495,10 @@ app.get('/filtros', verificarLogin, (req, res) => {
 
 });
 
-// endpoint para estadisticas por tecnico
+// endpoint para estadisticas por tecnico y rango de fechas
 app.get('/estadisticas/reparaciones', verificarLogin, (req, res) => {
 
-  const { tecnico } = req.query;
+  const { tecnico, fechaInicio, fechaFin } = req.query;
 
   let sql = `
     SELECT
@@ -511,8 +511,7 @@ app.get('/estadisticas/reparaciones', verificarLogin, (req, res) => {
     JOIN equipos e
       ON r.equipo_id = e.id
 
-    WHERE e.fecha_ingreso >=
-      CURDATE() - INTERVAL 1 MONTH
+    WHERE 1 = 1
   `;
 
   const params = [];
@@ -520,6 +519,26 @@ app.get('/estadisticas/reparaciones', verificarLogin, (req, res) => {
   if (tecnico) {
     sql += ` AND e.tecnico = ?`;
     params.push(tecnico);
+  }
+
+  if (fechaInicio) {
+
+    sql += `
+    AND e.fecha_ingreso >= ?
+  `;
+
+    params.push(fechaInicio);
+
+  }
+
+  if (fechaFin) {
+
+    sql += `
+    AND e.fecha_ingreso <= ?
+  `;
+
+    params.push(fechaFin);
+
   }
 
   sql += `
