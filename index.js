@@ -222,7 +222,8 @@ app.get('/pendientes', verificarLogin, (req, res) => {
 
     GROUP BY e.id
 
-    ORDER BY e.fecha_ingreso DESC
+    ORDER BY e.fecha_ingreso DESC,
+    e.id DESC
 
     LIMIT ? OFFSET ?
   `;
